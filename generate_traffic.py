@@ -260,8 +260,8 @@ def main():
         # Spawn Walkers
         # -------------
         # some settings
-        percentagePedestriansRunning = 0.0      # how many pedestrians will run
-        percentagePedestriansCrossing = 0.0     # how many pedestrians will walk through the road
+        percentagePedestriansRunning = 30      # how many pedestrians will run
+        percentagePedestriansCrossing = 20     # how many pedestrians will walk through the road
         if args.seedw:
             world.set_pedestrians_seed(args.seedw)
             random.seed(args.seedw)

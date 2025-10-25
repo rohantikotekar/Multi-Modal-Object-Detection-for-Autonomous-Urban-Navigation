@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-# Copyright (c) 2019 Intel Labs.
+# Copyright (c) 2018 Intel Labs.
 # authors: German Ros (german.ros@intel.com)
 #
 # This work is licensed under the terms of the MIT license.
