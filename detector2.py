@@ -38,9 +38,9 @@ class Detector:
         self.device = None
         
         # Detection parameters
-        self.confidence_threshold = 0.30
-        self.iou_threshold = 0.45
-        self.max_detection_range = 50.0
+        self.confidence_threshold = 0.10
+        self.iou_threshold = 0.10
+        self.max_detection_range = 10
         
         # Load model
         self._load_model()
