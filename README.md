@@ -1,91 +1,57 @@
-# Visual-Inertial Odometry and Pose Estimation for Autonomous Vehicles
+## **Advancing Autonomous Perception: 3D Object Detection in Urban Environments**
 
-This repository implements a robust **Visual-Inertial Odometry (VIO) Pipeline** for autonomous vehicle localization within the CARLA simulator. By fusing high-frequency inertial data with visual feature tracking and depth information, this project enables precise 6-DoF pose estimation in environments where GPS may be unreliable.
+[cite_start]This repository features the development and integration of a high-fidelity **3D Perception Engine** for autonomous driving within the CARLA simulator[cite: 4, 5]. [cite_start]The core objective is to move beyond idealized simulation data by architecting an inference pipeline that interprets raw sensor streams to identify and localize traffic participants in real-time[cite: 6, 28].
 
------
+---
 
-## Project Overview
+### **Project Overview**
 
-The odometry module serves as the vehicle's internal positioning system, estimating motion by analyzing how the world moves relative to the onboard sensors. This project implements a comprehensive VIO system that addresses common visual odometry failures like scale drift and motion jitter.
+The perception module serves as an autonomous vehicle's vision, converting raw sensor inputs into a clear, structured map of its surroundings. [cite_start]This project replaces simplified ground-truth data with a realistic pipeline that detects 3D objects using camera and LiDAR sensors[cite: 5, 6].
 
-### Problem Statement
+* [cite_start]**Problem Statement**: Standard autonomous systems often rely on "oracle" data from the simulator[cite: 19, 20]. [cite_start]To prepare for real-world deployment, agents must instead process high-dimensional sensor data to recognize objects under varying conditions and occlusions[cite: 228, 229, 231].
+* [cite_start]**The Solution**: A multi-modal perception stack that ingests synchronized RGB and LiDAR data, processes it through deep learning models, and outputs 3D bounding boxes in global coordinates for precise navigation[cite: 6, 196, 202].
 
-Pure Visual Odometry (VO) often suffers from scale ambiguity and cumulative drift over long trajectories. To achieve reliable autonomous navigation, the system must accurately recover metric scale and maintain a smooth, continuous estimate of the vehicle’s position ($x, y, z$) and orientation ($roll, pitch, yaw$).
+---
 
-### Solution
+### **Technical Architecture**
 
-The implemented VIO pipeline features:
+#### **1. Sensor Fusion & Configuration**
+[cite_start]The system is equipped with a versatile sensor suite to ensure comprehensive environmental awareness[cite: 60, 61]:
+* [cite_start]**Stereo RGB Cameras**: Dual-perspective cameras (Left/Right) configured for wide-field semantic understanding[cite: 44, 45, 48].
+* [cite_start]**64-Channel LiDAR**: High-resolution ray-cast sensor providing dense spatial mapping up to 50 meters[cite: 51, 53, 54].
+* [cite_start]**GNSS Integration**: Global positioning for accurate coordinate frame alignment between local detections and the world map[cite: 57, 217].
 
-  * **Multi-Sensor Fusion**: Synchronized processing of RGB cameras, Depth sensors, and IMU data.
-  * **Feature-Based Tracking**: Utilizes OpenCV ORB features and RANSAC-based Essential Matrix estimation for motion tracking.
-  * **Depth-Assisted Scale Recovery**: A median-depth calculation engine that anchors monocular visual motion to real-world metric units.
-  * **EKF State Estimation**: An Extended Kalman Filter that fuses visual "measurements" with IMU "predictions" to filter noise and handle rapid maneuvers.
+#### **2. Inference Engine & Pipeline**
+[cite_start]The `detect()` function serves as the central intelligence of the module, handling complex data transformations[cite: 196, 197]:
+* [cite_start]**Input Aggregation**: Processes a high-dimensional dictionary containing frame-synchronized images and LiDAR point clouds[cite: 199, 202].
+* [cite_start]**Deep Learning Integration**: Built to support state-of-the-art architectures from **OpenMMLab (mmdetection3d)** and **OpenPCDet**, such as PointPillars, CenterFormer, and DETR3D[cite: 211, 212, 213].
+* [cite_start]**Output Specifications**: Generates 3D bounding boxes with associated class labels (Vehicle, Pedestrian, Cyclist) and confidence scores[cite: 202, 203, 205, 207].
 
-### Trajectory Comparison and Results
+#### **3. Evaluation & Benchmarking**
+[cite_start]Performance is rigorously validated using Average Precision (AP) metrics across multiple Intersection over Union (IoU) thresholds[cite: 29]:
+* [cite_start]**Precision Metrics**: AP is calculated at IoU 0.3, 0.5, and 0.7 to quantify localization accuracy[cite: 33, 34].
+* [cite_start]**Spatial Alignment**: Coordinates are reordered into valid polygons to ensure mathematical correctness during evaluation against CARLA ground truth[cite: 38, 39, 227].
 
-\<img width="775" height="560" alt="image" src="[https://github.com/user-attachments/assets/07ba3fd2-fd54-461e-8f92-22427590a419](https://github.com/user-attachments/assets/07ba3fd2-fd54-461e-8f92-22427590a419)" /\>
+---
 
------
+### **Deployment Instructions**
 
-## Technical Implementation
+#### **Prerequisites**
+* [cite_start]CARLA Simulator 0.9.x [cite: 7]
+* Python 3.8+
+* [cite_start]PyTorch / TensorFlow Environment (Docker recommended for dependency management) [cite: 214, 221]
 
-### 1\. Sensor Configuration
+#### **Execution Flow**
+1.  [cite_start]**Initialize CARLA Server**: Start the simulation environment[cite: 22].
+2.  [cite_start]**Generate Traffic**: Populate the map with background actors[cite: 23, 24].
+3.  **Launch Perception Engine**:
+    ```bash
+    python3 automatic_control.py -sync
+    ```
+    [cite_start]*The `-sync` flag is utilized to ensure deterministic execution and data alignment between the server and the agent[cite: 27].*
 
-The architecture utilizes a rigidly attached sensor suite to maximize data fusion accuracy:
+---
 
-  * **RGB Frontal Camera**: Primary visual input for feature detection and tracking.
-  * **Depth Camera**: Co-located with the RGB sensor to provide per-pixel distance maps for scale correction.
-  * **IMU (Inertial Measurement Unit)**: Provides high-frequency linear acceleration and angular velocity readings.
-  * **Lidar**: Integrated to enhance environmental mapping and verification.
-
-### 2\. Localization Pipeline
-
-The core logic executes the following sequence:
-
-  * **Visual Odometry**: Detects and matches ORB keypoints between consecutive frames to recover relative rotation ($R$) and translation ($t$).
-  * **Scale Correction**: Decodes CARLA depth maps to calculate the median scene depth, scaling the visual translation vector to meters.
-  * **Inertial Propagation**: Integrates IMU data to predict the vehicle's state between camera frames and remove gravity vectors.
-  * **Global Alignment**: Transforms camera-frame coordinates into the global CARLA world frame using initial sensor transforms.
-
-### 3\. Evaluation Framework
-
-Performance is benchmarked against CARLA ground truth using **Absolute Trajectory Error (ATE)**:
-
-  * **Position Metrics**: RMSE, Mean, and Median error calculation in meters.
-  * **Rotation Metrics**: RMSE and Mean orientation error in radians.
-  * **Synchronous Execution**: Utilizes CARLA's sync mode to ensure fixed time steps ($dt$) for stable EKF integration.
-
------
-
-## Performance Evaluation
-
-The module provides smooth and continuous pose estimates, significantly reducing the jitter associated with raw visual tracking.
-
-| Metric | Result |
-| :--- | :--- |
-| **RMSE Position Error** | 40.98 meters |
-| **RMSE Rotation Error** | 0.52 radians |
-| **Mean Position Error** | 32.68 meters |
-| **Median Position Error** | 31.29 meters |
-
------
-
-## Getting Started
-
-### Prerequisites
-
-  * **Simulator**: CARLA 0.9.15
-  * **Languages**: Python 3.x
-  * **Libraries**: OpenCV, NumPy, SciPy
-
-### Execution Flow
-
-1.  **Launch CARLA**: `./CarlaUE4.sh -RenderOffScreen`
-2.  **Spawn Traffic**: `python generate_traffic.py`
-3.  **Run Odometry**: `python automatic_control.py -sync`
-
------
-
-## Conclusion
-
-This project successfully demonstrates a modular and scalable Visual-Inertial Odometry stack for autonomous systems. By integrating ORB-based visual tracking with an Extended Kalman Filter and depth-assisted scale recovery, the system provides a reliable foundation for real-time localization. While challenges like Z-axis coordinate drift and sensitivity to textureless scenes were observed, the application of world-frame anchoring and sensor fusion effectively minimized total trajectory error, proving the system's viability for urban navigation in simulated environments.
+### **Key Performance Features**
+* [cite_start]**Multi-Modal Visualization**: Real-time feedback via a Pygame interface, allowing for side-by-side comparison of model detections against ground-truth participants[cite: 63, 64, 65].
+* [cite_start]**Domain Adaptation**: Implementation paths for fine-tuning pre-trained models on simulator-specific data to bridge the gap between general training sets and the CARLA environment[cite: 230, 231, 233].
