@@ -1,4 +1,4 @@
-## **High-Fidelity 3D Perception Engine: Multi-Modal Object Detection & Spatial Inference**
+## **Multi-Modal Object Detection & Spatial Inference for Autonomous Urban Navigation**
 
 This repository featurues a robust **3D Perception Stack** designed for autonomous navigation within the CARLA simulation environment. The architecture transitions from ground-truth dependency to an end-to-end inference pipeline that interprets high-dimensional sensor streams to localize traffic participants in real-time.
 
