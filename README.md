@@ -1,12 +1,12 @@
 ## **Multi-Modal Object Detection & Spatial Inference for Autonomous Urban Navigation**
 
-This repository featurues a robust **3D Perception Stack** designed for autonomous navigation within the CARLA simulation environment. The architecture transitions from ground-truth dependency to an end-to-end inference pipeline that interprets high-dimensional sensor streams to localize traffic participants in real-time.
+This project featurues a robust **3D Perception Stack** designed for autonomous navigation within the CARLA simulation environment. The architecture transitions from ground-truth dependency to an end-to-end inference pipeline that interprets high-dimensional sensor streams to localize traffic participants in real-time.
 
 ---
 
 ### **System Architecture & Design**
 
-The perception module serves as the primary environmental interpreter for the autonomous agent. By replacing idealized ground-truth data with a multi-modal pipeline, the system processes raw sensor inputs to generate a structured 3D spatial map of the ego-vehicle's surroundings.
+The perception module is the primary environmental interpreter for the autonomous agent. By replacing idealized ground-truth data with a multi-modal pipeline, the system processes raw sensor inputs to generate a structured 3D spatial map of the ego-vehicle's surroundings.
 
 * **Objective**: To mitigate the domain gap between simulation and real-world deployment, the agent must process unrefined sensor data to identify objects under varying conditions and occlusions.
 * **Inference Pipeline**: An asynchronous stack that ingests synchronized RGB and LiDAR data, executes deep learning inference, and projects detections into global coordinates for precise spatial reasoning.
